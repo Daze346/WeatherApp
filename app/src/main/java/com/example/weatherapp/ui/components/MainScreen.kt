@@ -1,6 +1,5 @@
 package com.example.weatherapp.ui.components
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,8 +34,6 @@ import com.example.weatherapp.data.local.entity.Weather
 import com.example.weatherapp.ui.theme.LightBlack
 import com.example.weatherapp.ui.theme.LightGray
 import java.util.Locale
-import kotlin.Double
-import kotlin.String
 
 @Composable
 fun MainScreen(
@@ -53,54 +49,44 @@ fun MainScreen(
     )
 
 
-    var tempC by remember { mutableDoubleStateOf(0.toDouble()) }
-    var condition by remember { mutableStateOf("Loading...") }
-    var windMs by remember { mutableDoubleStateOf(0.toDouble()) }
-    var humidity by remember { mutableIntStateOf(0) }
-    var windDegree by remember { mutableIntStateOf(0) }
-    var pressureMb by remember { mutableDoubleStateOf(0.toDouble()) }
-    var precipMm by remember { mutableDoubleStateOf(0.toDouble()) }
-    var cloud by remember { mutableIntStateOf(0) }
-    var feelslikeC by remember { mutableDoubleStateOf(0.toDouble()) }
-    var lastUpdated by remember { mutableStateOf("Loading...") }
+    var currentWeather by remember { mutableStateOf(
+        value = Weather(
+            tempC = 0.toDouble(),
+            condition = "Loading...",
+            windKph = 0.toDouble(),
+            windMs = 0.toDouble(),
+            humidity = 0,
+            windDegree = 0,
+            pressureMb = 0.toDouble(),
+            precipMm = 0.toDouble(),
+            cloud = 0,
+            feelslikeC = 0.toDouble(),
+            lastUpdated = "Loading...",
+        )
+    ) }
 
 
-    val shortInfo =
-        "Погода: ${condition}\n" +
-        "Ветер: $windMs м/с\n" +
-        "Влажность: $humidity %"
 
-    val fullInfo =
-        shortInfo+ "\n" +
-        "Направление ветра: $windDegree°\n" +
-        "Давление: $pressureMb мбар\n" +
-        "Осадки: $precipMm мм\n" +
-        "Облачность: $cloud %\n" +
-        "Ощущается как: $feelslikeC°C"
+
+    var shortInfo = getInfoTextValues(currentWeather = currentWeather, getFullInfo = false)
+
+    var fullInfo = getInfoTextValues(currentWeather = currentWeather, getFullInfo = true)
 
 
     var showFullInfo by remember { mutableStateOf(false) }
     var infoText by remember { mutableStateOf( value = shortInfo ) }
-    var mainTemp by remember { mutableDoubleStateOf( value = tempC ) }
+    var mainTemp by remember { mutableDoubleStateOf( value = currentWeather.tempC ) }
 
     infoText = if (showFullInfo) {fullInfo} else {shortInfo}
 
     LaunchedEffect(viewModel) {
-        viewModel?.getLastWeather(database) { lastWeather ->
-            if (lastWeather.isNotEmpty()) {
-                windMs = "%.2f".format(Locale.US, lastWeather.last().windKph / 3.6).toDouble()
-                tempC = lastWeather.last().tempC
-                condition = lastWeather.last().condition
-                humidity = lastWeather.last().humidity
-                windDegree = lastWeather.last().windDegree
-                pressureMb = lastWeather.last().pressureMb
-                precipMm = lastWeather.last().precipMm
-                cloud = lastWeather.last().cloud
-                feelslikeC = lastWeather.last().feelslikeC
-                lastUpdated = lastWeather.last().lastUpdated
+        viewModel?.getLastWeather(database) { lastWeatherList ->
+            if (lastWeatherList.isNotEmpty()) {
+                val lastWeather = lastWeatherList.last()
+                currentWeather = lastWeather.copy()
 
                 infoText = if (showFullInfo) fullInfo else shortInfo
-                mainTemp = tempC
+                mainTemp = currentWeather.tempC
             }
         }
 
@@ -108,36 +94,26 @@ fun MainScreen(
             location = Constants.MOSCOW,
             responseLanguage = Constants.RU
         ) { receivedCurrentWeather ->
-            windMs = "%.2f".format(Locale.US, receivedCurrentWeather.current.windKph / 3.6).toDouble()
-            tempC = receivedCurrentWeather.current.tempC
-            condition = receivedCurrentWeather.current.condition.text
-            humidity = receivedCurrentWeather.current.humidity
-            windDegree = receivedCurrentWeather.current.windDegree
-            pressureMb = receivedCurrentWeather.current.pressureMb
-            precipMm = receivedCurrentWeather.current.precipMm
-            cloud = receivedCurrentWeather.current.cloud
-            feelslikeC = receivedCurrentWeather.current.feelslikeC
-            lastUpdated = receivedCurrentWeather.current.lastUpdated
+            currentWeather.windMs = "%.2f".format(Locale.US, receivedCurrentWeather.current.windKph / 3.6).toDouble()
+            currentWeather.tempC = receivedCurrentWeather.current.tempC
+            currentWeather.condition = receivedCurrentWeather.current.condition.text
+            currentWeather.humidity = receivedCurrentWeather.current.humidity
+            currentWeather.windDegree = receivedCurrentWeather.current.windDegree
+            currentWeather.pressureMb = receivedCurrentWeather.current.pressureMb
+            currentWeather.precipMm = receivedCurrentWeather.current.precipMm
+            currentWeather.cloud = receivedCurrentWeather.current.cloud
+            currentWeather.feelslikeC = receivedCurrentWeather.current.feelslikeC
+            currentWeather.lastUpdated = receivedCurrentWeather.current.lastUpdated
+
+            shortInfo = getInfoTextValues(currentWeather = currentWeather, getFullInfo = false)
+            fullInfo = getInfoTextValues(currentWeather = currentWeather, getFullInfo = true)
 
             infoText = if (showFullInfo) fullInfo else shortInfo
-            mainTemp = tempC
+            mainTemp = currentWeather.tempC
 
             viewModel.updateLastWeather(
                 database = database,
-                newWeather = Weather(
-                    id = 0,
-                    tempC = tempC,
-                    condition = condition,
-                    windKph = windMs * 3.6,
-                    humidity = humidity,
-                    windDegree = windDegree,
-                    pressureMb = pressureMb,
-                    precipMm = precipMm,
-                    cloud = cloud,
-                    feelslikeC = feelslikeC,
-                    lastUpdated = lastUpdated,
-                    windMs = windMs,
-                )
+                newWeather = currentWeather
             )
         }
     }
@@ -187,7 +163,7 @@ fun MainScreen(
 
                 Text(
                     modifier = Modifier.padding(top = 10.dp),
-                    text = "Данные актуальны на: $lastUpdated",
+                    text = "Данные актуальны на: ${currentWeather.lastUpdated}",
                     fontSize = 15.sp,
                     color = LightGray,
                     fontFamily = FontFamily(Font(R.font.nunito_bold))
@@ -209,4 +185,21 @@ fun MainScreen(
         }
     }
 
+}
+
+private fun getInfoTextValues(currentWeather: Weather, getFullInfo: Boolean): String{
+    val shortInfo =
+        "Погода: ${currentWeather.condition}\n" +
+        "Ветер: ${currentWeather.windMs} м/с\n" +
+        "Влажность: ${currentWeather.humidity} %"
+
+    val fullInfo =
+        shortInfo+ "\n" +
+        "Направление ветра: ${currentWeather.windDegree}°\n" +
+        "Давление: ${currentWeather.pressureMb} мбар\n" +
+        "Осадки: ${currentWeather.precipMm} мм\n" +
+        "Облачность: ${currentWeather.cloud} %\n" +
+        "Ощущается как: ${currentWeather.feelslikeC}°C"
+
+    return if (getFullInfo) fullInfo else shortInfo
 }

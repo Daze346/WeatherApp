@@ -4,13 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import com.example.weatherapp.data.local.database.AppDatabase
 import com.example.weatherapp.ui.components.MainScreen
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -28,16 +24,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
-            MainScreen(viewModel, database)
+            MainScreen(viewModel = viewModel, database = database)
 
         }
     }
 }
-
-
-
-
-
-//@Composable
-//@Preview(showBackground = true, showSystemUi = true)
-//fun PreviewMainScreen(){ MainScreen(null) }
