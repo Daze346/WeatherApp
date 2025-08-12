@@ -8,9 +8,15 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+
 android {
     namespace = "com.example.weatherapp"
     compileSdk = 36
+
+    val localProperties = Properties().apply {
+        load(rootProject.file("local.properties").inputStream())
+    }
+    val apiKey = localProperties.getProperty("api.key", "")
 
     defaultConfig {
         applicationId = "com.example.weatherapp"
@@ -20,6 +26,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "API_KEY", "\"$apiKey\"")
     }
 
     buildTypes {
@@ -39,6 +47,7 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
+        android.buildFeatures.buildConfig = true
         compose = true
     }
 }

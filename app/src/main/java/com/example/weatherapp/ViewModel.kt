@@ -20,10 +20,13 @@ class ViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-
-                val currentWeather = RetrofitClient.apiService.getCurrentWeather(location = location, responseLanguage = responseLanguage)
+                val currentWeather = withContext(Dispatchers.IO) {
+                    RetrofitClient.apiService.getCurrentWeather(
+                        location = location,
+                        responseLanguage = responseLanguage
+                    )
+                }
                 setValues( currentWeather )
-
             } catch (e: Exception) {
                 Log.e("!!!", "Error: ${e.message}")
             }

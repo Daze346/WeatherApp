@@ -1,7 +1,9 @@
 package com.example.weatherapp.constants
 
+import com.example.weatherapp.BuildConfig
+
 object Constants {
-    const val API_KEY = ""
+    const val API_KEY = BuildConfig.API_KEY
     const val BASE_URL = "https://api.weatherapi.com/"
 
     //Cities

@@ -20,8 +20,6 @@ class MainActivity : ComponentActivity() {
 
         val database = AppDatabase.getDatabase(this)
 
-
-
         setContent {
 
             MainScreen(viewModel = viewModel, database = database)
